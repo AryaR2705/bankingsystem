@@ -1,5 +1,6 @@
 package com.banking.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,9 +23,12 @@ public class RedisCacheConfig {
 
         ObjectMapper mapper = objectMapper.copy();
 
+        // EVERYTHING, not NON_FINAL: the cached DTOs are records (always final),
+        // and without type info they can't be deserialized back from Redis.
         mapper.activateDefaultTyping(
                 mapper.getPolymorphicTypeValidator(),
-                ObjectMapper.DefaultTyping.NON_FINAL
+                ObjectMapper.DefaultTyping.EVERYTHING,
+                JsonTypeInfo.As.PROPERTY
         );
 
         GenericJackson2JsonRedisSerializer serializer =

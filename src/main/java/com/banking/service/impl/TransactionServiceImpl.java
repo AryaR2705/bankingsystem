@@ -46,7 +46,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Cacheable(value = "transactionById", key = "#transactionId")
+    // Key includes the caller: the ownership check runs inside these methods,
+    // so a cache hit must never be served to a different user.
+    @Cacheable(value = "transactionById", key = "T(com.banking.security.SecurityUtils).getCurrentUserEmail() + ':' + #transactionId")
     public TransactionResponse getTransactionById(Long transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -66,7 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Cacheable(value = "transactionsByAccount", key = "#accountId")
+    @Cacheable(value = "transactionsByAccount", key = "T(com.banking.security.SecurityUtils).getCurrentUserEmail() + ':' + #accountId")
     public List<TransactionResponse> getTransactionForAcc(Long accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException(
